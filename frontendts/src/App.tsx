@@ -7,10 +7,10 @@ import AuthCallback from "./components/AuthCallback";
 function App() {
   const [state, setState] = useState<string | null>(null);
   const [token, setToken] = useState<String | null>("");
-  
+
   const handleLogin = () => {
     window.open(
-      "https://api.aurinko.io/v1/auth/authorize?clientId=75a434028df53f392b967f6f7a6b0ab1&serviceType=Google&scopes=Mail.Read%20Mail.Send&responseType=code&returnUrl=http://localhost:3000"
+      "https://api.aurinko.io/v1/auth/authorize?clientId=75a434028df53f392b967f6f7a6b0ab1&serviceType=Google&serviceType=Google&scopes=Calendar.ReadWrite Mail.Read Mail.Send&responseType=code&returnUrl=http://localhost:3000"
     );
   };
 
@@ -62,7 +62,6 @@ function App() {
     } else {
       console.error("Authorization code not found in the URL.");
     }
-
 
     setToken(localStorage.getItem("accessToken"));
   }, []);
