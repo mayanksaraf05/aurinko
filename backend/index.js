@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const axios = require("axios");
 const User = require("./models/userModel");
 const { default: mongoose } = require("mongoose");
+const Booking = require("./models/FormModel");
 
 const app = express();
 const port = 3004;
@@ -44,7 +45,7 @@ console.log(req.body,"reqqq body")
 const {token}=req.body
 
   try {
-    await axios.post(
+  const response=  await axios.post(
       "https://api.aurinko.io/v1/book/profiles",
       {
         ...req.body.formData
@@ -56,8 +57,28 @@ const {token}=req.body
         },
       }
     );
+    const booking = new Booking({
+     ...response.data
+    });
+    return booking.save().then((formData) => {
+      console.log(formData,"newwwwwwww")
+      res.send(formData)
+
+    });
+
   } catch (error) {
     console.error("Error creating booking:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+app.get("/getAllBookingList", async (req, res) => {
+  try {
+    const allBookings = await Booking.find().sort({createdAt: -1 });
+    res.json(allBookings);
+  } catch (error) {
+    console.error("Error in bookings:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });

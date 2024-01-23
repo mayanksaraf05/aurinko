@@ -73,8 +73,12 @@ function App() {
 
   return (
     <div className="App">
-      {!token && <button onClick={handleLogin}>login</button>}
-      {!!token && <button onClick={handleLogOut}>logout</button>}
+      {!token && <button style={{margin:"10px"}} onClick={handleLogin}>login</button>}
+      {!!token && (
+        <div style={{display:"flex",justifyContent:"end"}}>
+          <button onClick={handleLogOut}>logout</button>
+        </div>
+      )}
 
       {!!token && <BookingForm />}
     </div>
