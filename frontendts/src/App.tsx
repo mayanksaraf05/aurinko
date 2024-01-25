@@ -2,54 +2,39 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import axios from "axios";
 import BookingForm from "./components/BookingForm";
-import AuthCallback from "./components/AuthCallback";
+import CalendarForm from "./components/CalendarForm";
 
 function App() {
-  const [state, setState] = useState<string | null>(null);
   const [token, setToken] = useState<String | null>("");
+  const [createCalendar, setCreateCalendar] = useState<boolean>(false);
+  const [showBookingForm, setShowBookingForm] = useState<boolean>(true);
 
   const handleLogin = () => {
+    // for google Oauth screen
     window.open(
-      "https://api.aurinko.io/v1/auth/authorize?clientId=75a434028df53f392b967f6f7a6b0ab1&serviceType=Google&serviceType=Google&scopes=Calendar.ReadWrite Mail.Read Mail.Send&responseType=code&returnUrl=http://localhost:3000"
+      `https://api.aurinko.io/v1/auth/authorize?clientId=${process.env.REACT_APP_AURINKO_CLIENT_ID}&serviceType=Google&serviceType=Google&scopes=Calendar.ReadWrite Mail.Read Mail.Send&responseType=code&returnUrl=${process.env.REACT_APP_REDIRECT_URL}`
     );
-  };
-
-  const handleCreateCalendar = async () => {
-    try {
-      const response = await axios.post(
-        "https://api.aurinko.io/v1/book/profiles",
-        {
-          name: "New calendar",
-          color: "red",
-          description: "test",
-        },
-        {
-          headers: {
-            Authorization: "Bearer myspW9wGgJ2gVh0lZOPYz2gPeA2d1x5qsZ79EYbsnzU",
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log(response.data, "response");
-    } catch (error) {
-      console.error("Error creating calendar:", error);
-    }
   };
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+
+    // save the code given by Aurinko Google Oauth from url
     let authorizationCode = urlParams.get("code");
 
     if (authorizationCode && !localStorage.getItem("accessToken")) {
+      // for convert code given by Aurinko auth in url to token
       axios
-        .post("http://localhost:3004/callback", {
+        .post("http://localhost:3004/auth/callback", {
           code: authorizationCode,
         })
         .then((res) => {
           localStorage.setItem("accessToken", res.data.accessToken);
           setToken(res.data.accessToken);
+
+          // fetch user information from token and  save Information in database
           axios
-            .post(`http://localhost:3004/userInfo`, {
+            .post(`http://localhost:3004/user/userInfo`, {
               token: res.data.accessToken,
             })
             .then((response) => {
@@ -57,7 +42,6 @@ function App() {
             });
         });
 
-      console.log("Authorization Code:", authorizationCode);
       authorizationCode = "";
     } else {
       console.error("Authorization code not found in the URL.");
@@ -67,20 +51,59 @@ function App() {
   }, []);
 
   const handleLogOut = () => {
+    // redirect to base url and remove token from local storage
+    window.location.href = "http://localhost:3000/";
     localStorage.removeItem("accessToken");
     setToken("");
   };
 
+  const handleClickCalendar = () => {
+    setCreateCalendar(!createCalendar);
+  };
+
   return (
     <div className="App">
-      {!token && <button style={{margin:"10px"}} onClick={handleLogin}>login</button>}
-      {!!token && (
-        <div style={{display:"flex",justifyContent:"end"}}>
-          <button onClick={handleLogOut}>logout</button>
-        </div>
+      {!token && (
+        <button style={{ margin: "10px" }} onClick={handleLogin}>
+          login
+        </button>
       )}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "end",
+          background: "#4caf50",
+        }}
+      >
+        {!!token && !createCalendar && (
+          <button
+            style={{ marginRight: "10px" }}
+            onClick={() => setShowBookingForm(!showBookingForm)}
+          >
+            {!showBookingForm
+              ? "Back to create form"
+              : "Show latest applied bookings"}
+          </button>
+        )}
+        {!!token && (
+          <button onClick={handleClickCalendar}>
+            {!!createCalendar ? "Back to form" : "Create calendar"}
+          </button>
+        )}
+        {!!token && (
+          <button style={{ marginLeft: 10 }} onClick={handleLogOut}>
+            logout
+          </button>
+        )}
+      </div>
 
-      {!!token && <BookingForm />}
+      {!!token && !!createCalendar && <CalendarForm />}
+      {!!token && !createCalendar && (
+        <BookingForm
+          showBookingForm={showBookingForm}
+          setShowBookingForm={setShowBookingForm}
+        />
+      )}
     </div>
   );
 }

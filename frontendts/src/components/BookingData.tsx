@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import './BookingData.css'; 
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import "./BookingData.css";
 
 interface WorkingInterval {
   start: string;
@@ -19,17 +19,17 @@ interface WorkHours {
 }
 
 interface BookingData {
-    _id: string;
-    id: number;
-    name: string;
-    availabilityStep: number;
-    durationMinutes: number;
-    timeAvailableFor: string;
-    subject: string;
-    description: string;
-    location: string;
-    workHours: WorkHours;
-    createdAt: string;
+  _id: string;
+  id: number;
+  name: string;
+  availabilityStep: number;
+  durationMinutes: number;
+  timeAvailableFor: string;
+  subject: string;
+  description: string;
+  location: string;
+  workHours: WorkHours;
+  createdAt: string;
 }
 
 const BookingDetails: React.FC = () => {
@@ -38,50 +38,63 @@ const BookingDetails: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3004/getAllBookingList');
+        const response = await axios.get(
+          "http://localhost:3004/booking/getAllBookingList"
+        );
         const data: BookingData[] = response.data;
 
         setBookingData(data);
       } catch (error) {
-        console.error('Error fetching booking data:', error);
+        console.error("Error fetching booking data:", error);
       }
     };
 
     fetchData();
-  }, []); // Empty dependency array ensures the effect runs only once on mount
+  }, []);
 
   return (
     <div className="booking-container">
       {bookingData ? (
-        bookingData.map((booking, index) => (
-          <div key={index} className="booking-box">
-            <h2>{booking.name}</h2>
-            <p>ID: {booking._id}</p>
-            <p>Availability Step: {booking.availabilityStep}</p>
-            <p>Duration: {booking.durationMinutes} minutes</p>
-            <p>Time Available For: {booking.timeAvailableFor}</p>
-            <p>Subject: {booking.subject}</p>
-            <p>Description: {booking.description}</p>
-            <p>Location: {booking.location}</p>
-
-            <h3>Work Hours:</h3>
-            <p>Timezone: {booking.workHours.timezone}</p>
-            <p>Created At: {new Date(booking.createdAt).toLocaleString()}</p>
-            {/* <p>Updated At: {new Date(booking.workHours.updatedAt).toLocaleString()}</p> */}
-
-            <h3>Day Schedules:</h3>
-            {booking.workHours.daySchedules.map((daySchedule, dayIndex) => (
-              <div key={dayIndex} className="day-schedule-box">
-                <p>Day of Week: {daySchedule.dayOfWeek}</p>
-
-                <h4>Working Intervals:</h4>
-                {daySchedule.workingIntervals.map((interval, intervalIndex) => (
-                  <p key={intervalIndex}>Start: {interval.start}, End: {interval.end}</p>
-                ))}
-              </div>
-            ))}
-          </div>
-        ))
+        <table className="booking-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Availability Step</th>
+              <th>Duration</th>
+              <th>Time Available For</th>
+              <th>Subject</th>
+              <th>Description</th>
+              <th>Location</th>
+              <th>Timezone</th>
+              <th>Created At</th>
+              <th>Day of Week</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookingData.map((booking, index) =>
+              booking.workHours.daySchedules.map((daySchedule, dayIndex) => (
+                <tr key={`${index}-${dayIndex}`}>
+                  <td>{booking._id?.slice(0,10)}</td>
+                  <td>{booking.name}</td>
+                  <td>{booking.availabilityStep}</td>
+                  <td>{booking.durationMinutes} minutes</td>
+                  <td>{booking.timeAvailableFor}</td>
+                  <td>{booking.subject}</td>
+                  <td>{booking.description}</td>
+                  <td>{booking.location}</td>
+                  <td>{booking.workHours.timezone}</td>
+                  <td>{new Date(booking.createdAt).toLocaleString()}</td>
+                  <td>{daySchedule.dayOfWeek}</td>
+                  <td>{daySchedule.workingIntervals[0].start}</td>
+                  <td>{daySchedule.workingIntervals[0].end}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       ) : (
         <p>Loading booking data...</p>
       )}
