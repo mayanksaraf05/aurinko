@@ -1,4 +1,29 @@
-const mongoose = require("mongoose");
+import mongoose, { Document } from 'mongoose';
+
+interface WorkingInterval {
+  start: string;
+  end: string;
+}
+
+interface DaySchedule {
+  dayOfWeek: string;
+  workingIntervals: WorkingInterval[];
+}
+
+interface Booking extends Document {
+  id: number;
+  name: string;
+  availabilityStep: number;
+  durationMinutes: number;
+  timeAvailableFor: string;
+  subject: string;
+  description: string;
+  location: string;
+  workHours: {
+    daySchedules: DaySchedule[];
+    timezone: string;
+  };
+}
 
 const workingIntervalSchema = new mongoose.Schema({
   start: {
@@ -19,7 +44,7 @@ const dayScheduleSchema = new mongoose.Schema({
   workingIntervals: [workingIntervalSchema],
 });
 
-const bookingSchema = new mongoose.Schema({
+const bookingSchema = new mongoose.Schema<Booking>({
   id: Number,
   name: {
     type: String,
@@ -60,6 +85,6 @@ const bookingSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-const Booking = mongoose.model("Booking", bookingSchema);
+const BookingModel = mongoose.model<Booking>('Booking', bookingSchema);
 
-module.exports = Booking;
+export default BookingModel;
